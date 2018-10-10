@@ -121,6 +121,7 @@ var (
 	graceful bool
 )
 
+// 程序入口
 func main() {
 	flag.Parse()
 	if *version {

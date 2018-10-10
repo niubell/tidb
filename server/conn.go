@@ -465,6 +465,7 @@ func (cc *clientConn) Run() {
 			return
 		}
 
+		// 分发请求
 		startTime := time.Now()
 		if err = cc.dispatch(data); err != nil {
 			if terror.ErrorEqual(err, io.EOF) {

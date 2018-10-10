@@ -56,6 +56,7 @@ func (cc *clientConn) Run() {
 			}
 			return
 		}
+		// 分发请求(mock)
 		if err = cc.dispatch(tp, payload); err != nil {
 			if terror.ErrorEqual(err, terror.ErrResultUndetermined) {
 				log.Errorf("con:%d result undetermined error, close this connection %s",

@@ -103,6 +103,7 @@ func (cc *clientConn) handleStmtPrepare(sql string) error {
 	return errors.Trace(cc.flush())
 }
 
+// handleStmtExecute handle prepare execute phase
 func (cc *clientConn) handleStmtExecute(ctx context.Context, data []byte) (err error) {
 	if len(data) < 9 {
 		return mysql.ErrMalformPacket
