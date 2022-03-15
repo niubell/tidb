@@ -68,6 +68,10 @@ const (
 	IgnoreOnDup = "ignore"
 	// ErrorOnDup indicates using INSERT INTO to insert data, which would violate PK or UNIQUE constraint
 	ErrorOnDup = "error"
+	// TiDBPlacementRuleIgnore indicates all policy configs and policies in the source files will be ignored
+	TiDBPlacementRuleIgnore = "ignore"
+	// TiDBPlacementRuleImport indicates create schema with policy configs and associated policies. Ignore If policies already exist.
+	TiDBPlacementRuleImport = "import"
 
 	defaultDistSQLScanConcurrency     = 15
 	defaultBuildStatsConcurrency      = 20
@@ -145,6 +149,8 @@ type Config struct {
 	Security     Security            `toml:"security" json:"security"`
 
 	BWList filter.MySQLReplicationRules `toml:"black-white-list" json:"black-white-list"`
+
+	TiDBPlacementPolicy string `toml:"tidb-placement-policy" json:"tidb-placement-policy"`
 }
 
 func (cfg *Config) String() string {
@@ -504,6 +510,7 @@ func (igCols AllIgnoreColumns) GetIgnoreColumns(db string, table string, caseSen
 type FileRouteRule struct {
 	Pattern     string `json:"pattern" toml:"pattern" yaml:"pattern"`
 	Path        string `json:"path" toml:"path" yaml:"path"`
+	Placement   string `json:"placement" toml:"placement" yaml:"placement"`
 	Schema      string `json:"schema" toml:"schema" yaml:"schema"`
 	Table       string `json:"table" toml:"table" yaml:"table"`
 	Type        string `json:"type" toml:"type" yaml:"type"`
@@ -711,6 +718,7 @@ func NewConfig() *Config {
 			Analyze:           OpLevelOptional,
 			PostProcessAtLast: true,
 		},
+		TiDBPlacementPolicy: TiDBPlacementRuleIgnore,
 	}
 }
 
@@ -937,6 +945,13 @@ func (cfg *Config) Adjust(ctx context.Context) error {
 	if err := cfg.CheckAndAdjustTiDBPort(ctx, mustHaveInternalConnections); err != nil {
 		return err
 	}
+
+	// check tidb placement rule policy config
+	if cfg.TiDBPlacementPolicy != TiDBPlacementRuleIgnore && cfg.TiDBPlacementPolicy != TiDBPlacementRuleImport {
+		log.L().Error("the config `tidb-placement-policy` is invalid", zap.String("tidb-placement-policy", cfg.TiDBPlacementPolicy))
+		return errors.Errorf("invalid tidb placement rule policy: %s", cfg.TiDBPlacementPolicy)
+	}
+
 	cfg.AdjustMydumper()
 	cfg.AdjustCheckPoint()
 	return cfg.CheckAndAdjustFilePath()

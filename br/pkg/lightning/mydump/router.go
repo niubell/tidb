@@ -25,16 +25,18 @@ const (
 	SourceTypeCSV
 	SourceTypeParquet
 	SourceTypeViewSchema
+	SourceTypeTiDBPlacement
 )
 
 const (
-	SchemaSchema = "schema-schema"
-	TableSchema  = "table-schema"
-	ViewSchema   = "view-schema"
-	TypeSQL      = "sql"
-	TypeCSV      = "csv"
-	TypeParquet  = "parquet"
-	TypeIgnore   = "ignore"
+	SchemaSchema  = "schema-schema"
+	TableSchema   = "table-schema"
+	ViewSchema    = "view-schema"
+	TiDBPlacement = "tidb-placement"
+	TypeSQL       = "sql"
+	TypeCSV       = "csv"
+	TypeParquet   = "parquet"
+	TypeIgnore    = "ignore"
 )
 
 type Compression int
@@ -111,6 +113,8 @@ var defaultFileRouteRules = []*config.FileRouteRule{
 	{Pattern: `(?i).*(-schema-trigger|-schema-post)\.sql$`, Type: "ignore"},
 	// db schema create file pattern, matches files like '{schema}-schema-create.sql'
 	{Pattern: `(?i)^(?:[^/]*/)*([^/.]+)-schema-create\.sql$`, Schema: "$1", Table: "", Type: SchemaSchema, Unescape: true},
+	// tidb placement policy rule create file pattern, matches files like '{placement}-placement-policy-create.sql'
+	{Pattern: `(?i)^(?:[^/]*/)*([^/.]+)-placement-policy-create\.sql$`, Placement: "$1", Type: TiDBPlacement, Unescape: true},
 	// table schema create file pattern, matches files like '{schema}.{table}-schema.sql'
 	{Pattern: `(?i)^(?:[^/]*/)*([^/.]+)\.(.*?)-schema\.sql$`, Schema: "$1", Table: "$2", Type: TableSchema, Unescape: true},
 	// view schema create file pattern, matches files like '{schema}.{table}-schema-view.sql'

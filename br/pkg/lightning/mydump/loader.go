@@ -35,6 +35,7 @@ type MDDatabaseMeta struct {
 	SchemaFile FileInfo
 	Tables     []*MDTableMeta
 	Views      []*MDTableMeta
+	Placements []*TiDBPlacementMeta
 	charSet    string
 }
 
@@ -87,6 +88,15 @@ func (m *MDTableMeta) GetSchema(ctx context.Context, store storage.ExternalStora
 	return string(schema), nil
 }
 
+type TiDBPlacementMeta struct {
+	PolicyName string
+	PolicySQL  []string
+}
+
+func (tp *TiDBPlacementMeta) GetPolicy(ctx context.Context) []string {
+	return tp.PolicySQL
+}
+
 /*
 	Mydumper File Loader
 */
@@ -105,6 +115,7 @@ type mdLoaderSetup struct {
 	tableSchemas  []FileInfo
 	viewSchemas   []FileInfo
 	tableDatas    []FileInfo
+	tidbPlacement []FileInfo
 	dbIndexMap    map[string]int
 	tableIndexMap map[filter.Table]int
 }
@@ -324,6 +335,8 @@ func (s *mdLoaderSetup) listFiles(ctx context.Context, store storage.ExternalSto
 		switch res.Type {
 		case SourceTypeSchemaSchema:
 			s.dbSchemas = append(s.dbSchemas, info)
+		case SourceTypeTiDBPlacement:
+			s.tidbPlacement = append(s.tidbPlacement, info)
 		case SourceTypeTableSchema:
 			s.tableSchemas = append(s.tableSchemas, info)
 		case SourceTypeViewSchema:
